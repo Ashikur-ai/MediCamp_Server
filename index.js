@@ -28,7 +28,7 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const menuCollection = client.db("MediCamp").collection("camps");
+        const campCollection = client.db("MediCamp").collection("camps");
         const userCollection = client.db("MediCamp").collection("users");
 
         // middlewares 
@@ -169,10 +169,16 @@ async function run() {
             res.send(result);
         })
 
-        // camp api 
+        // camp related api 
         
         app.get('/camps', async (req, res) => {
-            const result = await menuCollection.find().toArray();
+            const result = await campCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.post('/camps', verifyToken, verifyOrganizer, async (req, res) => {
+            const data = req.body;
+            const result = await campCollection.insertOne(data);
             res.send(result);
         })
 
