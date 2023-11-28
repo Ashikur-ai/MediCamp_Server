@@ -30,6 +30,7 @@ async function run() {
 
         const campCollection = client.db("MediCamp").collection("camps");
         const userCollection = client.db("MediCamp").collection("users");
+        const registeredCampCollection = client.db("MediCamp").collection("registeredCamp");
 
         // middlewares 
         const verifyToken = (req, res, next) => {
@@ -182,7 +183,7 @@ async function run() {
             res.send(result);
         })
 
-        app.delete('/delete-camp/:campId', async (req, res) => {
+        app.delete('/delete-camp/:campId', verifyToken, verifyOrganizer, async (req, res) => {
             const id = req.params.campId;
             const query = { _id: new ObjectId(id) }
             const result = await campCollection.deleteOne(query);
@@ -217,6 +218,30 @@ async function run() {
             }
 
             const result = await campCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        // registered camp api 
+        app.post('/registeredCamp', async (req, res) => {
+            const data = req.body;
+            const query = {
+                camp_id: data.camp_id,
+                email: data.email
+            };
+            const alreadyRegistered = await registeredCampCollection.findOne(query);
+            if (alreadyRegistered) {
+                return res.send({message: 'user already exists', insertedId: null})
+            }
+            const result = await registeredCampCollection.insertOne(data);
+            res.send(result);
+        })
+
+        app.get('/registeredCamp/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email: email
+            }
+            const result = await registeredCampCollection.find(query).toArray();
             res.send(result);
         })
 
