@@ -146,6 +146,30 @@ async function run() {
             const result = await userCollection.insertOne(user);
             res.send(result);
         })
+
+        // profile updates 
+        app.get('/profile/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await userCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.patch('/updateProfile', async (req, res) => {
+            const data = req.body;
+            const filter = { email: data.email };
+            const updatedDoc = {
+                $set: {
+                    name: data?.name,
+                    phone: data?.phone,
+                    address: data?.address
+                }
+            }
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        // camp api 
         
         app.get('/camps', async (req, res) => {
             const result = await menuCollection.find().toArray();
