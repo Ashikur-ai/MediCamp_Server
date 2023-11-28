@@ -182,6 +182,44 @@ async function run() {
             res.send(result);
         })
 
+        app.delete('/delete-camp/:campId', async (req, res) => {
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) }
+            const result = await campCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.get('/update-camp/:campId', async (req, res) => {
+            const id = req.params.campId;
+            const query = { _id: new ObjectId(id) };
+            const result = await campCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.patch('/update-camp/:campId', async (req, res) => {
+            const data = req.body;
+            const id = req.params.campId;
+            
+            const filter = { _id: new ObjectId(id) };
+            
+            const updatedDoc = {
+                $set: {
+                    audience: data?.audience,
+                    camp_name: data?.camp_name,
+                    description: data?.description,
+                    fee: data?.fee,
+                    image: data?.image,
+                    professional: data?.professional,
+                    schedule: data?.schedule,
+                    service: data?.service,
+                    venue: data?.venue
+                }
+            }
+
+            const result = await campCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
