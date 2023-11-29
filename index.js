@@ -33,6 +33,7 @@ async function run() {
         const userCollection = client.db("MediCamp").collection("users");
         const registeredCampCollection = client.db("MediCamp").collection("registeredCamp");
         const reviewCollection = client.db("MediCamp").collection("reviews");
+        const upcomingCampCollection = client.db("MediCamp").collection("upcoming_camp");
 
         // middlewares 
         const verifyToken = (req, res, next) => {
@@ -328,6 +329,14 @@ async function run() {
 
         app.get('/reviews', async (req, res) => {
             const result = await reviewCollection.find().toArray();
+            res.send(result);
+        })
+
+
+        // upcoming camp api 
+        app.post('/upcomingCamp', async (req, res) => {
+            const data = req.body;
+            const result = await upcomingCampCollection.insertOne(data);
             res.send(result);
         })
 
