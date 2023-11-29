@@ -3,6 +3,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 
@@ -70,12 +71,12 @@ async function run() {
         })
 
         // users related api 
-        app.get('/users', verifyToken, verifyOrganizer, async (req, res) => {
+        app.get('/users', verifyToken,  async (req, res) => {
             const result = await userCollection.find().toArray();
             res.send(result);
         })
 
-        app.delete('/users/:id', verifyToken, verifyOrganizer, async (req, res) => {
+        app.delete('/users/:id', verifyToken,  async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await userCollection.deleteOne(query);
@@ -112,7 +113,22 @@ async function run() {
             res.send({ professional });
         })
 
-        app.patch('/users/organizer/:id', async (req, res) => {
+        app.get('/users/admin/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ message: 'unauthorized access' })
+            }
+
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user?.role === 'admin';
+            }
+            res.send({ admin });
+        })
+
+        app.patch('/users/organizer/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -125,7 +141,7 @@ async function run() {
         })
 
 
-        app.patch('/users/professional/:id', async (req, res) => {
+        app.patch('/users/professional/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updatedDoc = {
@@ -240,6 +256,63 @@ async function run() {
             const email = req.params.email;
             const query = {
                 email: email
+            }
+            const result = await registeredCampCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // payment api for registered camp
+        app.get('/registeredCamp', async (req, res) => {
+            // const id = req.params.campId;
+            // const query = { _id: new ObjectId(id) }
+            const result = await registeredCampCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/registerCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            
+            const query = { _id: new ObjectId(id) };
+            const result = await registeredCampCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.patch('/payment-camp/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    payment: 'done'
+                }
+            }
+            const result = await registeredCampCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+        
+        app.delete('/delete-registered-camp/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await registeredCampCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.patch('/confirm-camp/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    confirm: 'done'
+                }
+            }
+            const result = await registeredCampCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        app.get('/paidCamp/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email: email,
+                payment: "done"
             }
             const result = await registeredCampCollection.find(query).toArray();
             res.send(result);
