@@ -34,6 +34,8 @@ async function run() {
         const registeredCampCollection = client.db("MediCamp").collection("registeredCamp");
         const reviewCollection = client.db("MediCamp").collection("reviews");
         const upcomingCampCollection = client.db("MediCamp").collection("upcoming_camp");
+        const interestedProfessionalCollection = client.db("MediCamp").collection("interested_professional");
+        const interestedParticipantCollection = client.db("MediCamp").collection("interested_participant");
 
         // middlewares 
         const verifyToken = (req, res, next) => {
@@ -340,6 +342,80 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/upcomingCamp', async (req, res) => {
+            const result = await upcomingCampCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/upcomingCamp/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await upcomingCampCollection.findOne(query);
+            res.send(result);
+        })
+
+        // interested professional api 
+        app.post('/interestedProfessional', async (req, res) => {
+            const data = req.body;
+            const query = {
+                camp_id: data.camp_id,
+                email: data.email
+            }
+
+            const alreadyInterested = await interestedProfessionalCollection.findOne(query);
+
+            if (alreadyInterested) {
+                return res.send({message: 'already inserted', insertedId: null})
+            }
+            const result = await interestedProfessionalCollection.insertOne(data);
+            res.send(result);
+        })
+
+        // count interested professional
+
+        app.get('/countProfessional/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                camp_id: id
+            }
+            const result = await interestedProfessionalCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // interested participant api 
+        app.post('/interestedParticipant', async (req, res) => {
+            const data = req.body;
+            const query = {
+                camp_id: data.camp_id,
+                email: data.email
+            }
+
+            const alreadyInterested = await interestedParticipantCollection.findOne(query);
+            if (alreadyInterested) {
+                return res.send({ message: 'already inserted', insertedId: null })
+            }
+
+            const result = await interestedParticipantCollection.insertOne(data);
+            res.send(result);
+        })
+
+        // count interested participant 
+        app.get('/countParticipant/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                camp_id: id
+            }
+            const result = await interestedParticipantCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // delete upcoming camps 
+        app.delete('/delete-upcoming/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await upcomingCampCollection.deleteOne(query);
+            res.send(result);
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
