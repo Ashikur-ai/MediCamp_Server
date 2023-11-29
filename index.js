@@ -32,6 +32,7 @@ async function run() {
         const campCollection = client.db("MediCamp").collection("camps");
         const userCollection = client.db("MediCamp").collection("users");
         const registeredCampCollection = client.db("MediCamp").collection("registeredCamp");
+        const reviewCollection = client.db("MediCamp").collection("reviews");
 
         // middlewares 
         const verifyToken = (req, res, next) => {
@@ -315,6 +316,18 @@ async function run() {
                 payment: "done"
             }
             const result = await registeredCampCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        // reviews api 
+        app.post('/reviews', async (req, res) => {
+            const data = req.body;
+            const result = await reviewCollection.insertOne(data);
+            res.send(result);
+        })
+
+        app.get('/reviews', async (req, res) => {
+            const result = await reviewCollection.find().toArray();
             res.send(result);
         })
 
