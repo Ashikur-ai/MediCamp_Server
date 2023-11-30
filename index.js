@@ -417,6 +417,91 @@ async function run() {
             res.send(result);
         })
 
+        // organizer accepted campaign 
+        app.get('/acceptedCamp/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email : email
+            }
+            const result = await interestedProfessionalCollection.findOne(query);
+
+            const query1 = {
+                _id : new ObjectId(result.camp_id)
+            }
+            const result1 = await upcomingCampCollection.find(query1).toArray();
+
+            res.send(result1);
+        })
+
+        // update accept participant upcomming camp 
+        app.patch('/accept-participants/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    participants: 'accepted'
+                }
+            }
+            const result = await upcomingCampCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+        
+
+        // update accept professional upcomming camp 
+        app.patch('/accept-professionals/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    professionals: 'accepted'
+                }
+            }
+            const result = await upcomingCampCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+        // publish upcomming camp 
+        app.patch('/publish-upcoming/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    publish: 'done'
+                }
+            }
+            const result = await upcomingCampCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        // update upcoming camp
+
+        app.patch('/update-upcoming-camp/:campId', async (req, res) => {
+            const data = req.body;
+            const id = req.params.campId;
+
+            const filter = { _id: new ObjectId(id) };
+
+            const updatedDoc = {
+                $set: {
+                    audience: data?.audience,
+                    camp_name: data?.camp_name,
+                    description: data?.description,
+                    fee: data?.fee,
+                    image: data?.image,
+                    professional: data?.professional,
+                    schedule: data?.schedule,
+                    service: data?.service,
+                    venue: data?.venue
+                }
+            }
+
+            const result = await upcomingCampCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        
+
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
